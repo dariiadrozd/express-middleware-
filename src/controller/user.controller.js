@@ -1,66 +1,79 @@
 const express = require('express')
-const { getAllUsers, deleteUserById, getById, updateUsersById, createUser, patchUser } = require('../service/user.service')
+const Service = require('../service/user.service')
+const { isValidUserId, isValidUserData } = require('../helper/validation');
+const buildResponse = require('../helper/buildResponse')
+const service = new Service()
 
-const route = express.Router();
+class Controller {
+    constructor() {
 
-route.get('/', (req, res) => {
-    try {
-        const data = getAllUsers();
-        res.status(200).send(data);
-    } catch (error) {
-        res.status(404).send(error.message);
+        this.route = express.Router();
+        this.initRoute()
     }
-})
 
-route.get('/:id', (req, res) => {
-    try {
-        const { id } = req.params
-        const data = getById(id)
-        res.status(200).send(data)
-    } catch (er) {
-        res.status(404).send(er.message)
-    }
-})
+    initRoute() {
+        this.route.get('/', (req, res) => {
+            try {
+                const data = service.getAllUsers();
+                buildResponse(res,200,data)
+            } catch (error) {
+                buildResponse(res,404,er.message)
+            }
+        })
 
-route.delete('/:id', (req, res) => {
-    try {
-        const { id } = req.params;
-        const data = deleteUserById(id);
-        res.status(200).send(data);
-    } catch (er) {
-        res.status(404).send(er.message)
-    }
-})
+        this.route.get('/:id', isValidUserId, (req, res) => {
+            try {
+                const { id } = req.params
+                const data = service.getById(id)
+                buildResponse(res,200,data)
+            } catch (er) {
+                buildResponse(res,404,er.message)
+            }
+        })
 
-route.put('/:id', (req, res) => {
-    try {
-        const { id } = req.params;
-        const { name, surname, email, pwd } = req.body
-        const data = updateUsersById(id, name, surname, email, pwd)
-        res.status(201).send(data);
-    } catch (er) {
-        res.status(404).send(er.message)
-    }
-})
-route.post('/', (req, res) => {
-    try {
-        const { name, surname, email, pwd } = req.body
-        const data = createUser(name, surname, email, pwd)
-        res.status(201).send(data);
-    } catch (er) {
-        res.status(404).send(er.message)
-    }
-})
+        this.route.delete('/:id', isValidUserId, (req, res) => {
+            try {
+                const { id } = req.params;
+                const data = service.deleteUserById(id);
+                buildResponse(res,200,data)
+            } catch (er) {
+                buildResponse(res,404,er.message)
+            }
+        })
 
-route.patch('/:id', (req, res) => {
-    try {
-        const { id } = req.params;
-        const clientObj = req.body
-        const data = patchUser(id,clientObj)
-        res.status(201).send(data);
-    } catch (er) {
-        res.status(404).send(er.message)
-    }
-})
+        this.route.put('/:id', isValidUserId, isValidUserData, (req, res) => {
+            try {
+                const { id } = req.params;
+                const { name, surname, email, pwd } = req.body
+                const data = service.updateUsersById(id, name, surname, email, pwd)
+                buildResponse(res,201,data)
+            } catch (er) {
+                buildResponse(res,404,er.message)
+            }
+        })
+        this.route.post('/', isValidUserData, (req, res) => {
+            try {
+                const { name, surname, email, pwd } = req.body
+                const data = service.createUser(name, surname, email, pwd)
+                buildResponse(res,201,data)
+            } catch (er) {
+                buildResponse(res,404,er.message)
+            }
+        })
 
-module.exports = route;
+        this.route.patch('/:id', isValidUserId, (req, res) => {
+            try {
+                const { id } = req.params;
+                const clientObj = req.body
+                const data = service.patchUser(id, clientObj)
+                buildResponse(res,201,data)
+            } catch (er) {
+                buildResponse(res,404,er.message)
+            }
+        })
+    }
+}
+
+
+
+module.exports = Controller;
