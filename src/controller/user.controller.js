@@ -36,7 +36,7 @@ class Controller {
                 const { id } = req.params;
                 const data = service.deleteUserById(id);
                 buildResponse(res,200,data)
-            } catch (er) {
+            } catch (error) {
                 buildResponse(res,404,er.message)
             }
         })
